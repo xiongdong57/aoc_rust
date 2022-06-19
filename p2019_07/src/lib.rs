@@ -10,6 +10,13 @@ struct IntComputer {
     exit: bool,
 }
 
+fn resolve(nums: &Vec<i64>, mode: i64, pos: usize) -> i64 {
+    match mode {
+        0 => nums[nums[pos] as usize],
+        1 => nums[pos],
+        _ => panic!("Invalid mode"),
+    }
+}
 impl IntComputer {
     fn new(progrm: &Vec<i64>) -> Self {
         IntComputer {
@@ -20,6 +27,7 @@ impl IntComputer {
             exit: false,
         }
     }
+
     fn exec_one(&mut self) {
         if self.exit {
             return;
@@ -34,124 +42,62 @@ impl IntComputer {
             let mode2 = next[1..2].parse::<i64>().unwrap();
             match opcode {
                 1 => {
-                    let v1 = match mode1 {
-                        0 => nums[nums[curr + 1] as usize],
-                        1 => nums[curr + 1],
-                        _ => panic!("Invalid mode"),
-                    };
-                    let v2 = match mode2 {
-                        0 => nums[nums[curr + 2] as usize],
-                        1 => nums[curr + 2],
-                        _ => panic!("Invalid mode"),
-                    };
+                    let v1 = resolve(nums, mode1, curr + 1);
+                    let v2 = resolve(nums, mode2, curr + 2);
                     let p3 = nums[curr + 3];
                     nums[p3 as usize] = v1 + v2;
                     curr += 4;
                 }
                 2 => {
-                    let v1 = match mode1 {
-                        0 => nums[nums[curr + 1] as usize],
-                        1 => nums[curr + 1],
-                        _ => panic!("Invalid mode"),
-                    };
-                    let v2 = match mode2 {
-                        0 => nums[nums[curr + 2] as usize],
-                        1 => nums[curr + 2],
-                        _ => panic!("Invalid mode"),
-                    };
+                    let v1 = resolve(nums, mode1, curr + 1);
+                    let v2 = resolve(nums, mode2, curr + 2);
                     let p3 = nums[curr + 3];
                     nums[p3 as usize] = v1 * v2;
                     curr += 4;
                 }
                 3 => {
-                    match mode1 {
-                        0 => {
-                            let p = nums[curr + 1];
-                            nums[p as usize] = self.input.pop_front().unwrap();
-                        }
-                        _ => panic!("Invalid mode"),
-                    };
+                    let p1 = nums[curr + 1] as usize;
+                    nums[p1] = self.input.pop_front().unwrap();
                     curr += 2;
                 }
                 4 => {
-                    match mode1 {
-                        0 => {
-                            let p = nums[curr + 1];
-                            self.output.push_back(nums[p as usize]);
-                        }
-                        1 => {
-                            self.output.push_back(nums[curr + 1]);
-                        }
-                        _ => panic!("Invalid mode"),
-                    }
+                    self.output.push_back(resolve(nums, mode1, curr + 1));
                     curr += 2;
                     break;
                 }
                 5 => {
-                    let v1 = match mode1 {
-                        0 => nums[nums[curr + 1] as usize],
-                        1 => nums[curr + 1],
-                        _ => panic!("Invalid mode"),
-                    };
-                    let v2: i64 = match mode2 {
-                        0 => nums[nums[curr + 2] as usize],
-                        1 => nums[curr + 2],
-                        _ => panic!("Invalid mode"),
-                    };
-                    match v1 != 0 {
-                        true => curr = v2 as usize,
-                        false => curr += 3,
+                    let v1 = resolve(nums, mode1, curr + 1);
+                    let v2 = resolve(nums, mode2, curr + 2);
+                    match v1 {
+                        i if i != 0 => curr = v2 as usize,
+                        _ => curr += 3,
                     }
                 }
                 6 => {
-                    let v1 = match mode1 {
-                        0 => nums[nums[curr + 1] as usize],
-                        1 => nums[curr + 1],
-                        _ => panic!("Invalid mode"),
-                    };
-                    let v2: i64 = match mode2 {
-                        0 => nums[nums[curr + 2] as usize],
-                        1 => nums[curr + 2],
-                        _ => panic!("Invalid mode"),
-                    };
+                    let v1 = resolve(nums, mode1, curr + 1);
+                    let v2 = resolve(nums, mode2, curr + 2);
                     match v1 {
                         0 => curr = v2 as usize,
                         _ => curr += 3,
                     }
                 }
                 7 => {
-                    let v1 = match mode1 {
-                        0 => nums[nums[curr + 1] as usize],
-                        1 => nums[curr + 1],
-                        _ => panic!("Invalid mode"),
-                    };
-                    let v2: i64 = match mode2 {
-                        0 => nums[nums[curr + 2] as usize],
-                        1 => nums[curr + 2],
-                        _ => panic!("Invalid mode"),
-                    };
+                    let v1 = resolve(nums, mode1, curr + 1);
+                    let v2 = resolve(nums, mode2, curr + 2);
                     let p3 = nums[curr + 3];
-                    match v1 < v2 {
-                        true => nums[p3 as usize] = 1,
-                        false => nums[p3 as usize] = 0,
+                    match v1 {
+                        i if i < v2 => nums[p3 as usize] = 1,
+                        _ => nums[p3 as usize] = 0,
                     };
                     curr += 4;
                 }
                 8 => {
-                    let v1 = match mode1 {
-                        0 => nums[nums[curr + 1] as usize],
-                        1 => nums[curr + 1],
-                        _ => panic!("Invalid mode"),
-                    };
-                    let v2: i64 = match mode2 {
-                        0 => nums[nums[curr + 2] as usize],
-                        1 => nums[curr + 2],
-                        _ => panic!("Invalid mode"),
-                    };
+                    let v1 = resolve(nums, mode1, curr + 1);
+                    let v2 = resolve(nums, mode2, curr + 2);
                     let p3 = nums[curr + 3];
-                    match v1 == v2 {
-                        true => nums[p3 as usize] = 1,
-                        false => nums[p3 as usize] = 0,
+                    match v1 {
+                        i if i == v2 => nums[p3 as usize] = 1,
+                        _ => nums[p3 as usize] = 0,
                     };
                     curr += 4;
                 }
