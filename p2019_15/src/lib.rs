@@ -220,7 +220,6 @@ pub fn part_b(input: &str) -> i64 {
     q.push_back((0, 0, 0, computer));
     // north (1), south (2), west (3), and east (4)
     let directions = [(1, (0, 1)), (2, (0, -1)), (3, (-1, 0)), (4, (1, 0))];
-    let mut steps_to_found = 0;
     let mut loc_x = 0;
     let mut loc_y = 0;
     loop {
@@ -250,7 +249,6 @@ pub fn part_b(input: &str) -> i64 {
                 2 => {
                     if !map.contains(&(x + dx, y + dy)) {
                         q.push_front((x + dx, y + dy, steps + 1, cur_computer));
-                        steps_to_found = steps + 1;
                         loc_x = x + dx;
                         loc_y = y + dy;
                     }
