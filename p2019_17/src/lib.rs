@@ -193,7 +193,7 @@ pub fn part_a(input: &str) -> i64 {
             }
         };
     }
-    print_map(&map);
+    // print_map(&map);
     let mut sum = 0;
     let directions = vec![(0, 1), (1, 0), (0, -1), (-1, 0)];
     for (x, y) in map.keys() {
@@ -219,80 +219,284 @@ fn print_map(map: &HashMap<(i64, i64), char>) {
         .fold((i64::MIN, i64::MIN), |(max_x, max_y), (x, y)| {
             (max_x.max(*x), max_y.max(*y))
         });
-    for x in min_x..=max_x {
-        for y in min_y..=max_y {
+    for y in (min_y..=max_y).rev() {
+        for x in min_x..=max_x {
             print!("{}", map.get(&(x, y)).unwrap_or(&' '));
         }
         println!();
     }
 }
 
+enum Dir {
+    U,
+    D,
+    L,
+    R,
+}
+
+impl Dir {
+    fn left(&self) -> Dir {
+        match self {
+            Dir::U => Dir::L,
+            Dir::D => Dir::R,
+            Dir::L => Dir::D,
+            Dir::R => Dir::U,
+        }
+    }
+
+    fn right(&self) -> Dir {
+        match self {
+            Dir::U => Dir::R,
+            Dir::D => Dir::L,
+            Dir::L => Dir::U,
+            Dir::R => Dir::D,
+        }
+    }
+
+    fn coord(&self) -> (i64, i64) {
+        match self {
+            Dir::U => (0, -1),
+            Dir::D => (0, 1),
+            Dir::L => (-1, 0),
+            Dir::R => (1, 0),
+        }
+    }
+}
+
+fn is_free(map: &HashMap<(i64, i64), char>, pos: &(i64, i64), dir: &Dir) -> bool {
+    let dp = dir.coord();
+    let np = (pos.0 + dp.0, pos.1 + dp.1);
+    map.get(&np).unwrap_or(&' ') == &'#'
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+enum Cmd {
+    L,
+    R,
+    M(usize),
+}
+
+impl Cmd {
+    fn to_str(&self) -> String {
+        match self {
+            &Cmd::L => "L".to_string(),
+            &Cmd::R => "R".to_string(),
+            &Cmd::M(n) => n.to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+struct Compression {
+    a: Option<Vec<Cmd>>,
+    b: Option<Vec<Cmd>>,
+    c: Option<Vec<Cmd>>,
+    stack: Vec<Cmd>,
+    result: Vec<&'static str>,
+}
+
+impl Compression {
+    fn commit(&self) -> Option<Compression> {
+        if self.stack.len() < 5 {
+            // is this ok?
+            None
+        } else if self.result.len() == 10 {
+            return None;
+        } else if self.a.is_none() {
+            let mut other = self.clone();
+            other.a = Some(other.stack.split_off(0));
+            other.result.push("A");
+            eprintln!("{:?}", &other);
+            Some(other)
+        } else if self.b.is_none() {
+            let mut other = self.clone();
+            other.b = Some(other.stack.split_off(0));
+            other.result.push("B");
+            eprintln!("{:?}", &other);
+            Some(other)
+        } else if self.c.is_none() {
+            let mut other = self.clone();
+            other.c = Some(other.stack.split_off(0));
+            other.result.push("C");
+            eprintln!("{:?}", &other);
+            Some(other)
+        } else {
+            None
+        }
+    }
+
+    fn eat(&self) -> Option<Compression> {
+        if self.stack.is_empty() {
+            return None;
+        }
+
+        if self.result.len() == 10 {
+            return None;
+        }
+
+        for (i, s) in [&self.a, &self.b, &self.c].iter().enumerate() {
+            if let Some(s) = s {
+                if s == &self.stack {
+                    let mut other = self.clone();
+                    other.stack.clear();
+                    if i == 0 {
+                        other.result.push("A");
+                    } else if i == 1 {
+                        other.result.push("B");
+                    } else if i == 2 {
+                        other.result.push("C");
+                    }
+                    return Some(other);
+                }
+            }
+        }
+
+        None
+    }
+}
+
+fn compress(stream: &[Cmd], mut c: Compression) -> Option<Compression> {
+    if stream.is_empty() && c.stack.is_empty() {
+        return Some(c);
+    }
+    if let Some(commit) = c.commit() {
+        if let Some(soln) = compress(stream, commit) {
+            return Some(soln);
+        }
+    }
+    if let Some(eat) = c.eat() {
+        if let Some(soln) = compress(stream, eat) {
+            return Some(soln);
+        }
+    }
+    if !stream.is_empty() {
+        let cmd = stream[0];
+        c.stack.push(cmd);
+        if spell_cmd(&c.stack).len() <= 20 {
+            if let Some(soln) = compress(&stream[1..], c.clone()) {
+                return Some(soln);
+            }
+        }
+        c.stack.pop();
+    }
+
+    None
+}
+
+fn spell_cmd(a: &Vec<Cmd>) -> String {
+    a.iter()
+        .map(|a| a.to_str())
+        .collect::<Vec<String>>()
+        .join(",")
+}
+
 pub fn part_b(input: &str) -> i64 {
-    let mut program: Vec<i64> = input
+    let program: Vec<i64> = input
         .split(",")
         .map(|l| l.parse::<i64>().unwrap())
         .collect();
-    program[0] = 2;
-    let computer = IntComputer::new(&program);
+    let mut computer = IntComputer::new(&program);
+    let mut x = 0;
+    let mut y = 0;
+    let mut map = HashMap::new();
+    let mut pos = (0, 0);
+    loop {
+        computer.exec_once();
+        if computer.finished() {
+            break;
+        }
+        let out = computer.output.pop_front().unwrap();
+        match out {
+            35 => {
+                map.insert((x, y), '#');
+                x += 1;
+            }
+            46 => {
+                map.insert((x, y), '.');
+                x += 1;
+            }
+            10 => {
+                x = 0;
+                y += 1;
+            }
+            _ => {
+                map.insert((x, y), '^');
+                pos.0 = x;
+                pos.1 = y;
+                x += 1;
+            }
+        };
+    }
 
-    // ....###########..................................
-    // ....#.........#..................................
-    // ....#.........#..................................
-    // ....#.........#..................................
-    // ....#.........#..................................
-    // ....#.........#..................................
-    // ....#.........#..................................
-    // ....#.........#..................................
-    // ....#############................................
-    // ..............#.#................................
-    // ..............#.#................................
-    // ..............#.#................................
-    // ..............#########.....#############........
-    // ................#.....#.....#...........#........
-    // ................#.....#.....#.......#############
-    // ................#.....#.....#.......#...#.......#
-    // ................#.....#.....#.......#...#.......#
-    // ................#.....#.....#.......#...#.......#
-    // ................#.....#.....#.......#...#.......#
-    // ................#.....#.....#.......#...#.......#
-    // ................#############.......#...#.......#
-    // ......................#.............#...#.......#
-    // ......................#.#############...#.......#
-    // ......................#.#...............#.......#
-    // ......................^.#...............#########
-    // ........................#........................
-    // ........................#........................
-    // ........................#........................
-    // ........................#........................
-    // ........................#........................
-    // ........................#........................
-    // ........................#........................
-    // ........................#........................
-    // ........................#........................
-    // #.......................#########................
-    // #...............................#................
-    // #...............................#................
-    // #...............................#................
-    // #...............................#................
-    // #...............................#................
-    // #...............................#................
-    // #...............................#................
-    // #...............................#................
-    // #...............................#................
-    // #.#########...........#########.#................
-    // #.#.......#...........#.......#.#................
-    // #############.......#############................
-    // ..#.......#.#.......#.#.......#..................
-    // ..#.......#.#.......#.#.......#..................
-    // ..#.......#.#.......#.#.......#..................
-    // ..#.......#.#.......#.#.......#..................
-    // ..#.......#.#.......#.#.......#..................
-    // ..#.......#.#.......#.#.......#..................
-    // ..#.......#.#.......#.#.......#..................
-    // ..###########.......###########..................
-    // ..........#...........#..........................
-    // ..........#############..........................
-    0
+    let mut stream = Vec::new();
+    let mut steps = 0;
+    let mut dir = Dir::U;
+
+    loop {
+        if is_free(&map, &pos, &dir) {
+            steps += 1;
+            let dp = dir.coord();
+            pos.0 += dp.0;
+            pos.1 += dp.1;
+            continue;
+        } else if steps > 0 {
+            stream.push(Cmd::M(steps));
+            steps = 0;
+        }
+
+        if is_free(&map, &pos, &dir.left()) {
+            dir = dir.left();
+            stream.push(Cmd::L);
+            continue;
+        }
+
+        if is_free(&map, &pos, &dir.right()) {
+            dir = dir.right();
+            stream.push(Cmd::R);
+            continue;
+        }
+        break;
+    }
+
+    eprintln!("{:?}", stream);
+    let soln = compress(&stream, Default::default()).unwrap();
+    eprintln!("{:?}", soln);
+    let soln = format!(
+        "{}\n{}\n{}\n{}\nn\n",
+        soln.result.join(","),
+        spell_cmd(&soln.a.unwrap()),
+        spell_cmd(&soln.b.unwrap()),
+        spell_cmd(&soln.c.unwrap())
+    );
+
+    // eprintln!("{}", soln);
+    let mut computer = IntComputer::new(&program);
+    *computer.mem.entry(0).or_insert(2) = 2;
+    computer.input.extend(soln.chars().map(|c| c as i64));
+    computer.exec();
+    computer.output.pop_back().unwrap()
+
+    // solve by hand
+    // let mut computer = IntComputer::new(&program);
+    // let main = "A,B,A,C,A,A,C,B,C,B\n";
+    // let a = "L,12,L,8,R,12\n";
+    // let b = "L,10,L,8,L,12,R,12\n";
+    // let c = "R,12,L,8,L,10\n";
+    // let continuous = "n\n";
+    // for ch in main
+    //     .chars()
+    //     .chain(a.chars())
+    //     .chain(b.chars())
+    //     .chain(c.chars())
+    //     .chain(continuous.chars())
+    // {
+    //     computer.input.push_back(ch as i64);
+    // }
+
+    // *computer.mem.entry(0).or_insert(2) = 2;
+    // computer.exec();
+
+    // computer.output.pop_back().unwrap()
 }
 
 #[cfg(test)]
@@ -305,9 +509,9 @@ mod tests {
         assert_eq!(part_a(input), 10632);
     }
 
-    // #[test]
-    // fn part_b_result() {
-    //     let input = include_str!("input.txt");
-    //     assert_eq!(part_b(input), 0);
-    // }
+    #[test]
+    fn part_b_result() {
+        let input = include_str!("input.txt");
+        assert_eq!(part_b(input), 1356191);
+    }
 }
