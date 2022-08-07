@@ -60,6 +60,6 @@ mod tests {
     #[test]
     fn part_b_result() {
         let input = include_str!("input.txt");
-        assert_eq!(part_b(input), "");
+        assert_eq!(part_b(input), "uqcidadzwtnhsljvxyobmkfyr");
     }
 }
