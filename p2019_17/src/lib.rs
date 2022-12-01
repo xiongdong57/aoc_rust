@@ -1,6 +1,5 @@
 use std::collections::BTreeMap;
 use std::collections::HashMap;
-use std::collections::HashSet;
 use std::collections::VecDeque;
 
 #[derive(Debug, Clone)]
@@ -228,14 +227,6 @@ fn print_map(map: &HashMap<(i64, i64), char>) {
     }
 }
 
-pub fn part_b(input: &str) -> i64 {
-    let program: Vec<i64> = input
-        .split(",")
-        .map(|l| l.parse::<i64>().unwrap())
-        .collect();
-    let computer = IntComputer::new(&program);
-    0
-}
 
 #[cfg(test)]
 mod tests {
