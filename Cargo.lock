@@ -157,6 +157,21 @@ name = "p2015_25"
 version = "0.1.0"
 
 [[package]]
+name = "p2018_01"
+version = "0.1.0"
+
+[[package]]
+name = "p2018_02"
+version = "0.1.0"
+
+[[package]]
+name = "p2018_03"
+version = "0.1.0"
+dependencies = [
+ "serde_scan",
+]
+
+[[package]]
 name = "p2019_01"
 version = "0.1.0"
 
@@ -216,7 +231,15 @@ name = "p2019_15"
 version = "0.1.0"
 
 [[package]]
+name = "p2019_16"
+version = "0.1.0"
+
+[[package]]
 name = "p2019_17"
+version = "0.1.0"
+
+[[package]]
+name = "p2019_19"
 version = "0.1.0"
 
 [[package]]
@@ -260,5 +283,14 @@ checksum = "9b7ce2b32a1aed03c558dc61a5cd328f15aff2dbc17daad8fb8af04d2100e15c"
 dependencies = [
  "itoa",
  "ryu",
+ "serde",
+]
+
+[[package]]
+name = "serde_scan"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c328aed355674cef5038b201b14b24eb877213462edb7ba28801c6bdd0ac5597"
+dependencies = [
  "serde",
 ]
