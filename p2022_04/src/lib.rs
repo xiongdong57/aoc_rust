@@ -38,7 +38,6 @@ pub fn part_b(input: &str) -> usize {
         .map(|line| parse_line(line))
         .filter(|(a, b, c, d)| overlap_v2(a, b, c, d))
         .count()
-    // unimplemented!()
 }
 
 #[cfg(test)]
