@@ -1,10 +1,7 @@
 fn unique(chars: Vec<char>) -> bool {
-    for c in &chars {
-        if chars.iter().filter(|r| r == &c).count() > 1 {
-            return false;
-        }
-    }
-    true
+    chars
+        .iter()
+        .all(|c| chars.iter().filter(|r| r == &c).count() == 1)
 }
 
 pub fn part_a(input: &str) -> usize {
