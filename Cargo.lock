@@ -283,6 +283,10 @@ name = "p2022_10"
 version = "0.1.0"
 
 [[package]]
+name = "p2022_11"
+version = "0.1.0"
+
+[[package]]
 name = "regex"
 version = "1.5.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
