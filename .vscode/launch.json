@@ -5,19 +5,20 @@
     "version": "0.2.0",
     "configurations": [
 
+
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in library 'p2022_14'",
+            "name": "Debug unit tests in library 'p2022_15'",
             "cargo": {
                 "args": [
                     "test",
                     // "--no-run",
                     "--lib",
-                    "--package=p2022_14"
+                    "--package=p2022_15"
                 ],
                 "filter": {
-                    "name": "p2022_14",
+                    "name": "p2022_15",
                     "kind": "lib"
                 }
             },
